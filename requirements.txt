@@ -1,0 +1,9 @@
+django==3.0.*
+django-rest-framework
+psycopg2-binary
+markdown 
+django-filter
+pyjwt
+firebase
+firebase_admin
+django-rest-swagger
