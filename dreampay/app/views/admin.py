@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from app.serializers.admin import AdminFerivyClient, AdminLoginSerializer,AdminCreateMerchant,AdminCreateCashier,\
-    AdminTopupBalance,GetAllCashier,GetAllTopup,GetAllClient,VerifyTopup,CreateWithdrawl,GetAllWithdrawl,GetAllTransaction
+    AdminTopupBalance,GetAllCashier,GetAllTopup,GetAllClient,VerifyTopup,CreateWithdrawl,GetAllWithdrawl,GetAllTransaction, GetAllMerchant
 from middleware.authentication import AdminAuthentication
 from rest_framework.response import Response
 from rest_framework import generics, status
 from django_filters.rest_framework import DjangoFilterBackend
-from app.models import Cashier,TopupLog, Client, WithdrawlLog, TransactionLog
+from app.models import Cashier,TopupLog, Client, WithdrawlLog, TransactionLog, Merchant
 # Create your views here.
 class VerifyClientView(APIView):
     authentication_classes = [AdminAuthentication]
@@ -22,6 +22,8 @@ class AdminLoginView(APIView):
         serializer = AdminLoginSerializer(data=request.data)
         if serializer.is_valid():
             res = serializer.Login()
+            if "error" in str(res):
+                return Response(res, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(res, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -32,6 +34,8 @@ class CreateMerchantView(APIView):
         if serializer.is_valid():
             adminId = request.auth['id']
             res = serializer.create(adminId)
+            if "error" in str(res):
+                return Response(res, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(res, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -42,6 +46,8 @@ class CreateCashierView(APIView):
         if serializer.is_valid():
             adminId = request.auth['id']
             res = serializer.create(adminId)
+            if "error" in str(res):
+                return Response(res, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(res, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -52,6 +58,8 @@ class TopupClientView(APIView):
         if serializer.is_valid():
             adminId = request.auth['id']
             res = serializer.TopUp(adminId)
+            if "error" in str(res):
+                return Response(res, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(res, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -59,6 +67,11 @@ class GetAllCashierView(generics.ListAPIView):
     authentication_classes = [AdminAuthentication]
     queryset = Cashier.objects.all()
     serializer_class = GetAllCashier
+
+class GetAllMercantView(generics.ListAPIView):
+    authentication_classes = [AdminAuthentication]
+    queryset = Merchant.objects.all()
+    serializer_class = GetAllMerchant
 
 class GetAllTopupView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
@@ -81,6 +94,8 @@ class UpdateTopuplogView(APIView):
         if serializer.is_valid():
             adminId = request.auth['id']
             res = serializer.UpdateAll(adminId)
+            if "error" in str(res):
+                return Response(res, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(res, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -91,6 +106,8 @@ class CreateWithdrawlView(APIView):
         if serializer.is_valid():
             adminId = request.auth['id']
             res = serializer.Withdrawl(adminId)
+            if "error" in str(res):
+                return Response(res, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(res, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

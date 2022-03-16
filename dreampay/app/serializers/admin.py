@@ -14,7 +14,7 @@ class AdminLoginSerializer(serializers.Serializer):
             encoded_jwt = jwt.encode({"id": c.id,"phone":c.phone,"time":time.time()}, SECRET_KEY, algorithm="HS256")
             AdminToken.objects.create(admin_id=c.id, token=encoded_jwt)
         except Exception as e:
-            return {"detail":str(e)}
+            return {"error":str(e)}
         Log.objects.create(case={"usecase":"AdminLoginSerializer","admin":c.name,"status":"success"})
         return {"admin":c.name,"token":encoded_jwt}
 
@@ -26,7 +26,7 @@ class AdminFerivyClient(serializers.Serializer):
             c.is_active = True
             c.save()
         except Exception:
-            return {"detail":" client not found"}
+            return {"error":" client not found"}
         Log.objects.create(client_id=c, admin_id=admin, case={"usecase":"AdminFerivyClient","status":"success"})
         return {"detail":" client actived successfully"}
 
@@ -41,7 +41,7 @@ class AdminCreateMerchant(serializers.Serializer):
             phone = validated_data['phone'].value
             m = Merchant.objects.create(email=email,name=name,phone=phone,admin_id=admin)
         except Exception as e:
-            return {"detail":str(e)}
+            return {"error":str(e)}
         Log.objects.create(merchant_id=m.id, admin_id=admin, case={"usecase":"AdminCreateMerchant","status":"success"})
         return {"detail":"Cashier created successfully"}
         
@@ -57,7 +57,7 @@ class AdminCreateCashier(serializers.Serializer):
             phone = validated_data['phone'].value
             c = Cashier.objects.create(email=email,name=name,phone=phone,admin_id=admin)
         except Exception as e:
-            return {"detail":str(e)}
+            return {"error":str(e)}
         Log.objects.create(cashier_id=c.id, admin_id=admin, case={"usecase":"AdminCreateCashier","status":"success"})
         return {"detail":"Cashier created successfully"}
 
@@ -69,12 +69,15 @@ class AdminTopupBalance(serializers.Serializer):
         total=validated_data['total'].value
         try:
             c = Client.objects.get(id=client_id)
-            balance = c.balance
-            c.balance = balance + int(total)
-            c.save()
-            TopupLog.objects.create(client_id=c.id, admin_id=admin,total=total)
+            if c.is_active:
+                balance = c.balance
+                c.balance = balance + int(total)
+                c.save()
+                TopupLog.objects.create(client_id=c.id, admin_id=admin,total=total)
+            else:
+                return {"error":"client not activated"}
         except Exception:
-            return {"detail":"client not found"}
+            return {"error":"client not found"}
         Log.objects.create(client_id=c.id, admin_id=admin, case={"usecase":"AdminTopupBalance","total":total,"status":"success"})
         return {"balance":balance + int(total)}
 
@@ -107,6 +110,11 @@ class GetAllCashier(serializers.ModelSerializer):
         adm = Admin.objects.get(id=cashier_instance.admin_id)
         return AdminSerializer(adm).data
 
+class GetAllMerchant(serializers.ModelSerializer):
+    class Meta:
+        model = Merchant
+        fields ='__all__'
+   
 class GetAllTopup(serializers.ModelSerializer):
     admin = serializers.SerializerMethodField()
     cashier = serializers.SerializerMethodField()
@@ -143,7 +151,7 @@ class VerifyTopup(serializers.Serializer):
                 t.admin_id=admin
                 t.save()
         except Exception as e:
-            return {"detail":str(e)}
+            return {"error":str(e)}
         Log.objects.create(admin_id=admin, case={"usecase":"VerifyTopup","id":list,"status":"success"})
         return{"detail":"All id updated successfully"}
 
@@ -162,12 +170,12 @@ class CreateWithdrawl(serializers.Serializer):
             m = Merchant.objects.get(id=merchant)
             balance = m.balance
             if balance < total:
-                return {"detail":"not enough balance for withdrawl"}
+                return {"error":"not enough balance for withdrawl"}
             m.balance = balance-int(total)
             m.save()
             WithdrawlLog.objects.create(admin_id=admin,merchant_id=merchant,total=total)
         except Exception as e:
-            return{"detail":str(e)}
+            return{"error":str(e)}
         Log.objects.create(merchant_id=merchant, admin_id=admin, case={"usecase":"CreateWithdrawl","total":total,"status":"success"})
         return {"balance":balance - int(total)}
 

@@ -1,7 +1,7 @@
 from django.urls import  path
 from app.views.admin import VerifyClientView,AdminLoginView, CreateMerchantView, CreateCashierView,TopupClientView,\
     GetAllCashierView,GetAllTopupView,GetAllClientView,UpdateTopuplogView,CreateWithdrawlView,GetAllWithdrawlView,\
-        GetAllTransactionView
+        GetAllTransactionView,GetAllMercantView
 
 urlpatterns = [
     path('verify/',VerifyClientView.as_view()),
@@ -10,6 +10,7 @@ urlpatterns = [
     path('create-cashier/',CreateCashierView.as_view()),
     path('topup/',TopupClientView.as_view()),
     path('cashier/',GetAllCashierView.as_view()),
+    path('merchant/',GetAllMercantView.as_view()),
     path('all-topup/',GetAllTopupView.as_view()),
     path('all-client/',GetAllClientView.as_view()),
     path('update-topup/',UpdateTopuplogView.as_view()),
