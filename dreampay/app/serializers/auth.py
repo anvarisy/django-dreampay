@@ -6,23 +6,7 @@ from app.models import Admin,AdminToken,Merchant,MerchantToken,Cashier,\
 from dreampay.settings import SECRET_KEY
 import time
 
-class AdminLoginSerializer(serializers.Serializer):
-    phone = serializers.CharField(max_length=15, required=True)
-    # password = serializers.CharField(max_length=40, required=True)
-    def Login(validated_data):
-        phone = validated_data.data['phone']
-        # password = validated_data.data['password']
-        try:
-            c = Admin.objects.get(phone=phone)
-            # decPass = jwt.decode(c.password, SECRET_KEY, algorithm="HS256")
-            # if decPass != password:
-            #     return {"admin":"password not match"}
-            encoded_jwt = jwt.encode({"id": c.id,"phone":c.phone,"time":time.time()}, SECRET_KEY, algorithm="HS256")
-            Log.objects.create(case={"usecase":"AdminLoginSerializer","admin":c.name,"status":"success"})
-            AdminToken.objects.create(client=c, token=encoded_jwt)
-        except Exception:
-            return {"admin":"not found"}
-        return {"admin":c.name,"token":encoded_jwt}
+
 
 class MerchantLoginSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15, required=True)
@@ -55,7 +39,7 @@ class CashierLoginSerializer(serializers.Serializer):
             #     return {"merchant":"password not match"}
             encoded_jwt = jwt.encode({"id": c.id,"phone":c.phone,"time":time.time()}, SECRET_KEY, algorithm="HS256")
             Log.objects.create(case={"usecase":"CashierLoginSerializer","cashier":c.name,"status":"success"})
-            CashierToken.objects.create(client=c, token=encoded_jwt)
+            CashierToken.objects.create(cashier_id=c.id, token=encoded_jwt)
         except Exception:
             return {"cashier":"not found"}
         return {"cashier":c.name,"token":encoded_jwt}
@@ -73,7 +57,7 @@ class ClientLoginSerializer(serializers.Serializer):
             #     return {"client":"password not match"}
             encoded_jwt = jwt.encode({"id": c.id,"phone":c.phone,"time":time.time()}, SECRET_KEY, algorithm="HS256")
             Log.objects.create(case={"usecase":"ClientLoginSerializer","client":c.name,"status":"success"})
-            ClientToken.objects.create(client=c, token=encoded_jwt)
+            ClientToken.objects.create(client_id=c.id, token=encoded_jwt)
         except Exception:
             return {"client":"not found"}
         return {"client":c.name,"token":encoded_jwt}
